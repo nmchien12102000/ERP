@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.venv/
+# Mỗi dev có dữ liệu thử riêng, không đưa lên GitHub
+erp.db

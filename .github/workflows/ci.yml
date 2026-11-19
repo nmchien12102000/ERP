@@ -1,0 +1,21 @@
+name: CI (tích hợp)
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          token: ${{ secrets.MODULES_TOKEN }}   # token đọc được 3 repo module private
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Ghép 3 module thật + chạy toàn bộ test
+        run: python -m unittest -v
