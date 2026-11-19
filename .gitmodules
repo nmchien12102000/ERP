@@ -1,0 +1,8 @@
+[submodule "modules/sd"]
+	path = modules/sd
+	url = https://github.com/nmchien12102000/ERP_SD.git
+	branch = main
+[submodule "modules/mm"]
+	path = modules/mm
+	url = https://github.com/nmchien12102000/ERP_MM.git
+	branch = main
