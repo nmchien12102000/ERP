@@ -9,14 +9,14 @@ from pathlib import Path
 
 from core import db, services
 
-APP_TITLE = "Mini ERP"
+APP_TITLE = "ERP"
 
 # Thứ tự ở đây = thứ tự tab trên giao diện.
-INSTALLED_MODULES = ["fi", "sd", "mm"]
-MODULE_NAMES = {"fi": "Kế toán", "sd": "Bán hàng", "mm": "Vật tư & Kho"}
+INSTALLED_MODULES = ["sd", "mm"]
+MODULE_NAMES = {"sd": "Bán hàng", "mm": "Vật tư & Kho"}
 
 # Module nào có bản giả (module được module khác gọi tới).
-FAKES = {"fi": "core.fakes.fi", "mm": "core.fakes.mm"}
+FAKES = {"mm": "core.fakes.mm"}
 
 MODULES_DIR = Path(__file__).resolve().parent.parent / "modules"
 
@@ -36,8 +36,10 @@ def register_services() -> None:
     for code in INSTALLED_MODULES:
         if is_available(code):
             services.register(code, importlib.import_module(f"modules.{code}.public"))
-        elif code in FAKES:
-            services.register(code, importlib.import_module(FAKES[code]).create())
+    # Module không bật (hoặc không có code) mà module khác cần gọi → dùng bản giả.
+    for code, fake in FAKES.items():
+        if code not in INSTALLED_MODULES or not is_available(code):
+            services.register(code, importlib.import_module(fake).create())
 
 
 def init_database(modules) -> None:
@@ -63,17 +65,10 @@ def run() -> None:
     notebook.pack(fill="both", expand=True, padx=8, pady=8)
 
     for code in INSTALLED_MODULES:
-        if code in modules:
-            tab = modules[code].build_tab(notebook)
-            notebook.add(tab, text=f"  {code.upper()} – {MODULE_NAMES[code]}  ")
-        else:
-            tab = ttk.Frame(notebook, padding=40)
-            note = "Các module khác đang dùng BẢN GIẢ (dữ liệu mẫu trong bộ nhớ)." if code in FAKES else ""
-            ttk.Label(tab, justify="center", text=(
-                f"Máy này không có code module {code.upper()}\n"
-                f"(submodule modules/{code} chưa tải về hoặc bạn không có quyền).\n\n{note}"
-            )).pack()
-            notebook.add(tab, text=f"  {code.upper()} – (không có)  ")
+        if code not in modules:
+            continue  # máy này không có code module này → không hiện tab
+        tab = modules[code].build_tab(notebook)
+        notebook.add(tab, text=f"  {code.upper()} – {MODULE_NAMES[code]}  ")
 
     def on_tab_changed(_event):
         tab = root.nametowidget(notebook.select())
